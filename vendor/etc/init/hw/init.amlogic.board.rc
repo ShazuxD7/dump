@@ -1,0 +1,243 @@
+on early-init
+    loglevel 3
+
+    mount configfs configfs /sys/kernel/config
+    #mount usbfs none /proc/bus/usb
+
+on init
+
+on post-fs-data
+    insmod /vendor/lib/modules/mali.ko
+    insmod /vendor/lib/modules/bt_usb_qcom.ko
+    insmod /vendor/lib/modules/cfg80211.ko
+    insmod /vendor/lib/dovi.ko
+    insmod /vendor/lib/sl_hdr.ko
+    insmod /vendor/lib/modules/mxl251_fe.ko
+    insmod /vendor/lib/modules/mxl248_fe.ko
+    insmod /vendor/lib/modules/tc6930_fe.ko
+    insmod /vendor/lib/modules/aml_hardware_dmx.ko
+    chmod 0777 /data/misc/bluetooth
+    chmod 0777 /data/misc/bluetooth/logs
+
+on boot
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor interactive
+    write /sys/class/freq_limit/limit 0
+    write /sys/power/wake_lock keep_wake
+    
+
+#Radical interactive cpu mode
+    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/above_hispeed_delay 10
+    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/hispeed_freq 1200000
+    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/io_is_busy 1
+    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/timer_rate 12000
+    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/go_hispeed_load 85
+
+#HDMI IN
+    chmod 666 /sys/class/sii9233a/port
+    chmod 666 /sys/class/sii9233a/enable
+    chmod 666 /sys/module/tvin_vdin/parameters/max_buf_num
+    chmod 666 /sys/devices/platform/sam_nbiot/sam_nbiot_rst
+
+
+    # chmod 0666 /dev/ge2d
+    chmod 666 /dev/cec
+
+#dvb
+    chmod 0666 /dev/media
+    chmod 0666 /dev/i2c-0
+    chmod 0666 /dev/i2c-2
+    chmod 0777 /dev/smc0
+    chmod 0777 /sys/class/stb/dsc0_free_dscs
+    chmod 0777 /sys/class/stb/dsc0_source
+    chmod 0777 /sys/class/stb/dsc1_free_dscs
+    chmod 0777 /sys/class/stb/dsc1_source
+    chmod 0777 /sys/class/fd650s/fd650s_ctrl
+    chmod 0777 /dev/dvb0.dsc0
+    chmod 0777 /dev/dvb0.dsc1
+    chmod 0777 /dev/dvb0.net0
+    chmod 0777 /dev/dvb0.net1
+    chmod 0777 /dev/dvb0.net2
+    chmod 0666 /dev/tv
+    chmod 0666 /dev/amresource_mgr
+    chmod 0666 /sys/devices/virtual/btusb/btusb0/dev_mac_addr
+    
+#NET LED
+    chmod 666 sys/class/leds/net_green/brightness
+    chmod 666 sys/class/leds/net_red/brightness
+
+    chmod 777 /system/bin/hwdetect
+    
+    #chmod 777 /sys/devices/platform/dvb_mxl251/frontend/frontendid
+    
+    #restorecon /sys/devices/platform/dvb_mxl251/frontend/
+    
+#IR blaster
+    chmod 666 /sys/devices/virtual/meson-irblaster/irblaster1/carrier_freq
+    chmod 666 /sys/devices/virtual/meson-irblaster/irblaster1/duty_cycle
+    chmod 666 /sys/devices/virtual/meson-irblaster/irblaster1/send
+
+#am_av_test
+    chmod 755 /vendor/bin/am_av_test
+
+#show first frame
+    write /sys/class/video/show_first_frame_nosync 1
+
+#iWedia change ownership so we can store active bouquets in NVM
+    restorecon /mnt/vendor/param/
+    chown system system /mnt/vendor/param
+    mkdir /mnt/vendor/param/nv_bak/ 0777 system system
+    restorecon /mnt/vendor/param/bouquet_data
+    chown system system /mnt/vendor/param/bouquet_data
+    restorecon /mnt/vendor/param/vmx_nvram0
+    chown system system /mnt/vendor/param/vmx_nvram0
+    restorecon /mnt/vendor/param/vmx_nvram1
+    chown system system /mnt/vendor/param/vmx_nvram1
+    restorecon /mnt/vendor/param/vmx_nvram2
+    chown system system /mnt/vendor/param/vmx_nvram2
+    restorecon /mnt/vendor/param/vmx_nvram3
+    chown system system /mnt/vendor/param/vmx_nvram3
+    restorecon /mnt/vendor/param/vmx_nvram4
+    chown system system /mnt/vendor/param/vmx_nvram4
+    restorecon /mnt/vendor/param/vmx_nvram5
+    chown system system /mnt/vendor/param/vmx_nvram5
+
+
+    start hwdetect
+    #chown system system  /sys/devices/platform/dvb_mxl251/frontend/
+
+    #chcon u:object_r:sysfs_frontend:s0 /sys/devices/platform/dvb_mxl251/frontendid
+                                       
+    #restorecon --recursive  /sys/devices/platform/dvb_mxl251/frontend
+    #restorecon_recursive  /sys/devices/platform/dvb_mxl251/frontendid
+    #restorecon   /sys/devices/platform/dvb_mxl251/frontend
+
+    #restorecon   /sys/devices/platform/dvb_mxl251/frontend/frontendid
+    #restorecon   /sys/devices/platform/dvb_mxl251/frontend
+
+
+#logcat size
+    setprop persist.logd.size 1048576
+
+#mdf add ril and pppd
+#service ril-daemon /system/bin/rild -l /system/lib/libreference-ril.so -- -d /dev/ttyS3
+#    class main
+#    socket rild stream 660 root radio
+#    socket rild-debug stream 660 radio system
+#    user root
+#    group radio cache inet misc audio log
+
+service nb_iot_reset /system/bin/nb_iot_reset.sh
+    user root
+    group system radio cache inet misc
+    disabled
+    oneshot
+    seclabel u:r:shell:s0
+
+service nb_iot_wakeup /system/bin/nb_iot_wakeup.sh 1
+    user root
+    group system radio cache inet misc
+    disabled
+    oneshot
+    seclabel u:r:shell:s0
+
+service nb_iot_sleep /system/bin/nb_iot_wakeup.sh 0
+    user root
+    group system radio cache inet misc
+    disabled
+    oneshot
+    seclabel u:r:shell:s0
+
+service pppd_nb_iot /system/bin/nb_iot_pppd.sh
+    user root
+    group system radio cache inet misc
+    disabled
+    oneshot
+    seclabel u:r:ppp:s0
+
+service nb_iot_set_route /system/bin/set_route.sh
+    user root
+    group system radio cache inet misc
+    disabled
+    oneshot
+    seclabel u:r:netd:s0
+
+service nb_iot_clear_route /system/bin/destroy_route.sh
+    user root
+    group system radio cache inet misc
+    disabled
+    oneshot
+    seclabel u:r:netd:s0
+
+service nb_iot_kill_pppd /system/bin/nb_iot_kill_pppd.sh
+    user root
+    group system radio cache inet misc
+    disabled
+    oneshot
+    seclabel u:r:shell:s0
+
+service pppd_up /system/etc/ppp/ip-up-datakey ppp0
+    user root
+    group radio cache inet misc
+    disabled
+    oneshot
+
+service pppd_down /system/etc/ppp/ip-down-datakey ppp0
+    user root
+    group radio cache inet misc
+    disabled
+    oneshot
+## end
+
+# liushouhua add for hw detect
+service hwdetect /system/bin/hwdetect
+    class main
+    user root
+    group system
+    disabled
+    oneshot
+
+
+# bluetooth
+# change back to bluetooth from system
+chown bluetooth net_bt_admin /data/misc/bluetooth
+mkdir /data/misc/bluedroid 0770 bluetooth net_bt_admin
+# bluetooth LPM
+chown bluetooth net_bt_admin /proc/bluetooth/sleep/lpm
+chown bluetooth net_bt_admin /proc/bluetooth/sleep/btwrite
+#UART device
+chmod 0660 /dev/ttyS1
+chown bluetooth net_bt_admin /dev/ttyS1
+# rfkill
+chmod 0660 /sys/class/rfkill/rfkill0/state
+chmod 0660 /sys/class/rfkill/rfkill0/type
+chown bluetooth net_bt_admin /sys/class/rfkill/rfkill0/state
+chown bluetooth net_bt_admin /sys/class/rfkill/rfkill0/type
+write /sys/class/rfkill/rfkill0/state 0
+# bluetooth MAC address programming
+chown bluetooth net_bt_admin ro.bt.bdaddr_path
+chown bluetooth net_bt_admin /system/etc/bluetooth
+chown bluetooth net_bt_admin /data/misc/bluetooth
+# setprop ro.bt.bdaddr_path "/data/misc/bluetooth/bdaddr"
+service dhcpcd_bnep0 /system/bin/dhcpcd -BKLG
+disabled
+oneshot
+service dhcpcd_bnep1 /system/bin/dhcpcd -BKLG
+disabled
+oneshot
+service dhcpcd_bnep2 /system/bin/dhcpcd -BKLG
+disabled
+oneshot
+service dhcpcd_bnep3 /system/bin/dhcpcd -BKLG
+disabled
+oneshot
+service dhcpcd_bnep4 /system/bin/dhcpcd -BKLG
+disabled
+oneshot
+service dhcpcd_bt-pan /system/bin/dhcpcd -ABKL
+class main
+disabled
+oneshot
+service iprenew_bt-pan /system/bin/dhcpcd -n
+class main
+disabled
+oneshot

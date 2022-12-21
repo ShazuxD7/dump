@@ -1,0 +1,32 @@
+#!/system/bin/sh
+case $1 in
+    ppp0)
+        /android/bin/iptables --flush;
+        /android/bin/iptables --table nat --flush;
+        /android/bin/iptables --delete-chain;
+        /android/bin/iptables --table nat --append POSTROUTING --out-interface ppp0 -j MASQUERADE;
+        /android/bin/iptables --append FORWARD --in-interface ppp0 -j ACCEPT;
+        echo 0 > /proc/sys/net/ipv4/ip_forward;
+        echo 1 > /proc/sys/net/ipv4/ip_forward;
+        ;;
+    ppp0)
+    /system/bin/setprop "net.interfaces.defaultroute" "ppp0";
+    ;;
+esac
+
+/system/bin/setprop "net.ppp0.dns1" "$DNS1"
+/system/bin/setprop "net.ppp0.dns2" "$DNS2"
+/system/bin/setprop "net.ppp0.local-ip" "$IPLOCAL"
+/system/bin/setprop "net.ppp0.remote-ip" "$IPREMOTE"
+/system/bin/setprop "net.ppp0.gw" "$IPREMOTE"
+/system/bin/setprop "net.ppp0.if" "$IFNAME"
+
+#NETWORK_ID=123
+#ndc network create $NETWORK_ID
+#ndc network interface add $NETWORK_ID ppp0
+#ndc network route add $NETWORK_ID ppp0 10.0.0.0/24
+#ndc network route add $NETWORK_ID ppp0 0.0.0.0/0 $IPREMOTE
+#ndc network route add $NETWORK_ID ppp0 0.0.0.0/0 100.80.117.237
+#ndc network default set ${NETWORK_ID}
+#ndc resolver setnetdns ${NETWORK_ID} "" $DNS1 $DNS1
+#ndc resolver setnetdns ${NETWORK_ID} "" 8.8.8.8 8.8.4.4

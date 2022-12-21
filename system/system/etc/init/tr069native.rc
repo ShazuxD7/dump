@@ -1,0 +1,11 @@
+service tr069native /system/bin/tr069native
+    class main
+    group root bluetooth system
+
+on fs
+    chown root system /cache/recovery/last_log
+    mkdir /data/vendor/bluetooth 0775 bluetooth system
+    mkdir /data/vendor/bluetooth/BluetoothLog 0775 bluetooth system
+    write /data/vendor/bluetooth/tr069bt.conf 0
+    chmod 0664 /data/vendor/bluetooth/tr069bt.conf
+    chown bluetooth system /data/vendor/bluetooth/tr069bt.conf

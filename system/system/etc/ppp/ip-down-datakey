@@ -1,0 +1,20 @@
+#!/system/bin/sh
+case $1 in
+    ppp0)
+        echo 0 > /proc/sys/net/ipv4/ip_forward;
+        ;;
+esac
+
+/system/bin/setprop "net.ppp0.dns1" ""
+/system/bin/setprop "net.ppp0.dns2" ""
+/system/bin/setprop "net.ppp0.local-ip" ""
+/system/bin/setprop "net.ppp0.remote-ip" ""
+/system/bin/setprop "net.ppp0.gw" ""
+/system/bin/setprop "net.ppp0.if" ""
+
+ps -aux | grep pppd | grep -v grep | awk '{print $2}' | while read pid
+do
+     echo "tomcat is running, to kill bootstrap pid=$pid"
+     kill -9 $pid
+     echo "kill result: $?"
+done

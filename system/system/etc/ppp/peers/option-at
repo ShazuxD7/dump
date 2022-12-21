@@ -1,0 +1,4 @@
+115200
+debug
+/dev/ttyS3
+connect "/system/bin/chat -s -v -f /etc/ppp/chat-script"

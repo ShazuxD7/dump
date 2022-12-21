@@ -1,0 +1,3 @@
+service virtualinput /system/bin/virtualinput
+    class main
+    group bluetooth root

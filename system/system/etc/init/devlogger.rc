@@ -1,0 +1,4 @@
+service devlogger /system/bin/devlogger
+    class main
+    user root
+    group system sdcard_rw cache

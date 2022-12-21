@@ -1,0 +1,6 @@
+noauth
+nocrtscts
+nocdtrcts
+115200
+local
+/dev/ttyS2
